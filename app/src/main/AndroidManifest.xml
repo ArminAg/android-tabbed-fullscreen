@@ -22,7 +22,11 @@
             android:name=".activities.MediaActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_media"
-            android:theme="@style/FullscreenTheme"></activity>
+            android:theme="@style/FullscreenTheme" />
+        <activity
+            android:name=".activities.SettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>
