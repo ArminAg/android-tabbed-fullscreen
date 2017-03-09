@@ -287,11 +287,35 @@ public class MediaActivity extends AppCompatActivity {
         }
 
         public void updateUI(MediaImage image){
-            this.imageView.setImageBitmap(decodeUri(image.getImgResourceUrl().getPath()));
+            DecodeBitmap task = new DecodeBitmap(imageView, image);
+            task.execute();
         }
     }
 
+    class DecodeBitmap extends AsyncTask<Void, Void, Bitmap>{
+        private final WeakReference<ImageView> mImageViewWeakReference;
+        private MediaImage image;
 
+        public DecodeBitmap(ImageView imageView, MediaImage image) {
+            this.mImageViewWeakReference = new WeakReference<ImageView>(imageView);
+            this.image = image;
+        }
+
+        @Override
+        protected Bitmap doInBackground(Void... params) {
+            return decodeUri(image.getImgResourceUrl().getPath());
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap bitmap) {
+            super.onPostExecute(bitmap);
+            final ImageView imageView = mImageViewWeakReference.get();
+
+            if (imageView != null){
+                imageView.setImageBitmap(bitmap);
+            }
+        }
+    }
 
     public Bitmap decodeUri(String filePath){
         BitmapFactory.Options options = new BitmapFactory.Options();
