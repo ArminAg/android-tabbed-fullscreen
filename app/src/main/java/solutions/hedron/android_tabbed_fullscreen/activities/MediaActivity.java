@@ -4,8 +4,6 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.MediaStore;
@@ -18,16 +16,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
 import solutions.hedron.android_tabbed_fullscreen.R;
+import solutions.hedron.android_tabbed_fullscreen.adapter.ImagesAdapter;
 import solutions.hedron.android_tabbed_fullscreen.model.MediaImage;
 
 /**
@@ -134,7 +130,7 @@ public class MediaActivity extends AppCompatActivity {
         selectedImage = (ImageView)findViewById(R.id.selected_image);
 
         RecyclerView recyclerView = (RecyclerView)findViewById(R.id.content_images);
-        ImagesAdapter imagesAdapter = new ImagesAdapter(images);
+        ImagesAdapter imagesAdapter = new ImagesAdapter(images, selectedImage);
         recyclerView.setAdapter(imagesAdapter);
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(getBaseContext(), 4);
@@ -184,7 +180,8 @@ public class MediaActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-
+                        // Set Images on RecyclerView Adapter
+                        // Update Images
                     }
                 });
             }
@@ -242,100 +239,5 @@ public class MediaActivity extends AppCompatActivity {
     private void delayedHide(int delayMillis) {
         mHideHandler.removeCallbacks(mHideRunnable);
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
-    }
-
-    public class ImagesAdapter extends RecyclerView.Adapter<ImageViewHolder>{
-        private ArrayList<MediaImage> images;
-
-        public ImagesAdapter(ArrayList<MediaImage> images) {
-            this.images = images;
-        }
-
-        @Override
-        public void onBindViewHolder(ImageViewHolder holder, int position) {
-            final MediaImage image = images.get(position);
-            holder.updateUI(image);
-
-            final ImageViewHolder vHolder = holder;
-
-            holder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    selectedImage.setImageDrawable(vHolder.imageView.getDrawable());
-                }
-            });
-        }
-
-        @Override
-        public int getItemCount() {
-            return images.size();
-        }
-
-        @Override
-        public ImageViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View card = LayoutInflater.from(parent.getContext()).inflate(R.layout.card_image, parent, false);
-            return new ImageViewHolder(card);
-        }
-    }
-
-    public class ImageViewHolder extends RecyclerView.ViewHolder {
-        private ImageView imageView;
-
-        public ImageViewHolder(View itemView) {
-            super(itemView);
-            imageView = (ImageView)itemView.findViewById(R.id.media_image_thumb);
-        }
-
-        public void updateUI(MediaImage image){
-            DecodeBitmap task = new DecodeBitmap(imageView, image);
-            task.execute();
-        }
-    }
-
-    class DecodeBitmap extends AsyncTask<Void, Void, Bitmap>{
-        private final WeakReference<ImageView> mImageViewWeakReference;
-        private MediaImage image;
-
-        public DecodeBitmap(ImageView imageView, MediaImage image) {
-            this.mImageViewWeakReference = new WeakReference<ImageView>(imageView);
-            this.image = image;
-        }
-
-        @Override
-        protected Bitmap doInBackground(Void... params) {
-            return decodeUri(image.getImgResourceUrl().getPath());
-        }
-
-        @Override
-        protected void onPostExecute(Bitmap bitmap) {
-            super.onPostExecute(bitmap);
-            final ImageView imageView = mImageViewWeakReference.get();
-
-            if (imageView != null){
-                imageView.setImageBitmap(bitmap);
-            }
-        }
-    }
-
-    public Bitmap decodeUri(String filePath){
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(filePath, options);
-
-        // Only scale if we need to
-        // (16384 buffer for image processing)
-        Boolean scaleByHeight = Math.abs(options.outHeight - 100) >= Math.abs(options.outWidth - 100);
-        if (options.outHeight * options.outWidth * 2 >= 16384){
-            // Load, scaling to smallest power of 2 that'll get it <= desired dimensions
-            double sampleSize = scaleByHeight
-                    ? options.outHeight / 1000
-                    : options.outWidth / 1000;
-            options.inSampleSize = (int)Math.pow(2d, Math.floor(Math.log(sampleSize)/Math.log(2d)));
-        }
-
-        options.inJustDecodeBounds = false;
-        options.inTempStorage = new byte[512];
-        Bitmap output = BitmapFactory.decodeFile(filePath, options);
-        return output;
     }
 }
