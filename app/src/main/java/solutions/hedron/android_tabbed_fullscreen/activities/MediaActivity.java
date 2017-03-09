@@ -1,6 +1,14 @@
 package solutions.hedron.android_tabbed_fullscreen.activities;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.MediaStore;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -8,7 +16,10 @@ import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.util.ArrayList;
+
 import solutions.hedron.android_tabbed_fullscreen.R;
+import solutions.hedron.android_tabbed_fullscreen.model.MediaImage;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -31,6 +42,12 @@ public class MediaActivity extends AppCompatActivity {
      * Some older devices needs a small delay between UI widget updates
      * and a change of the status and navigation bar.
      */
+
+    // Arbitrary number for storage permission
+    final int PERMISSION_READ_EXTERNAL_STORAGE = 111;
+
+    private ArrayList<MediaImage> images = new ArrayList<>();
+
     private static final int UI_ANIMATION_DELAY = 300;
     private final Handler mHideHandler = new Handler();
     private View mContentView;
@@ -104,10 +121,43 @@ public class MediaActivity extends AppCompatActivity {
             }
         });
 
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSION_READ_EXTERNAL_STORAGE);
+        } else {
+            getAndSetImages();
+        }
+
         // Upon interacting with UI controls, delay any scheduled hide()
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
         findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        switch (requestCode){
+            case PERMISSION_READ_EXTERNAL_STORAGE:{
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    getAndSetImages();
+                }
+            }
+        }
+    }
+
+    public void getAndSetImages(){
+        images.clear();
+        Cursor cursor = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, null, null, null);
+        if (cursor != null){
+            cursor.moveToFirst();
+
+            for (int x = 0; x < cursor.getCount(); x++){
+                cursor.moveToPosition(x);
+                MediaImage image = new MediaImage(Uri.parse(cursor.getString(1)));
+                images.add(image);
+            }
+        }
     }
 
     @Override
