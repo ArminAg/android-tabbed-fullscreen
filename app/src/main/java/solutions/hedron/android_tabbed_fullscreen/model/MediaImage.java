@@ -12,4 +12,8 @@ public class MediaImage {
     public MediaImage(Uri imgResourceUrl) {
         this.imgResourceUrl = imgResourceUrl;
     }
+
+    public Uri getImgResourceUrl() {
+        return imgResourceUrl;
+    }
 }

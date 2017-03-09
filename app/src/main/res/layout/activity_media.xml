@@ -15,13 +15,20 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
             <ImageView
-                android:id="@+id/selectedImage"
+                android:id="@+id/selected_image"
                 app:layout_widthPercent="100%"
                 app:layout_aspectRatio="100%"
                 android:adjustViewBounds="false"
                 android:scaleType="centerCrop"
                 android:src="@drawable/tesla"/>
+
         </android.support.percent.PercentRelativeLayout>
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/content_images"
+            android:layout_width="match_parent"
+            android:layout_height="330dp">
+
+        </android.support.v7.widget.RecyclerView>
     </LinearLayout>
 
 
